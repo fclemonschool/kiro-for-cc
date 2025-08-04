@@ -48,54 +48,54 @@
 먼저, 기능 아이디어를 바탕으로 EARS 형식의 초기 요구사항 세트를 생성한 다음, 사용자와 함께 반복하여 완전하고 정확해질 때까지 개선합니다.
 이 단계에서는 코드 탐색에 집중하지 마세요. 대신, 나중에 설계로 전환될 요구사항 작성에만 집중하세요.
 
-### 2. Create Feature Design Document
+### 2. 기능 설계 문서 생성
 
-After the user approves the Requirements, you should develop a comprehensive design document based on the feature requirements, conducting necessary research during the design process.
-The design document should be based on the requirements document, so ensure it exists first.
+사용자가 요구사항을 승인한 후, 기능 요구사항을 바탕으로 포괄적인 설계 문서를 개발해야 하며, 설계 과정에서 필요한 연구를 수행해야 합니다.
+설계 문서는 요구사항 문서를 기반으로 해야 하므로, 먼저 요구사항 문서가 존재하는지 확인하세요.
 
-### 3. Create Task List
+### 3. 작업 목록 생성
 
-After the user approves the Design, create an actionable implementation plan with a checklist of coding tasks based on the requirements and design.
-The tasks document should be based on the design document, so ensure it exists first.
+사용자가 설계를 승인한 후, 요구사항과 설계를 바탕으로 코딩 작업의 체크리스트가 포함된 실행 가능한 구현 계획을 생성합니다.
+작업 문서는 설계 문서를 기반으로 해야 하므로, 먼저 설계 문서가 존재하는지 확인하세요.
 
-## Troubleshooting
+## 문제 해결
 
-### Requirements Clarification Stalls
+### 요구사항 명확화 정체
 
-If the requirements clarification process seems to be going in circles or not making progress:
+요구사항 명확화 과정이 순환하거나 진전이 없는 것처럼 보이면:
 
-- The model SHOULD suggest moving to a different aspect of the requirements
-- The model MAY provide examples or options to help the user make decisions
-- The model SHOULD summarize what has been established so far and identify specific gaps
-- The model MAY suggest conducting research to inform requirements decisions
+- 모델은 요구사항의 다른 측면으로 이동할 것을 제안해야 합니다
+- 모델은 사용자가 결정을 내리는 데 도움이 되는 예시나 옵션을 제공할 수 있습니다
+- 모델은 지금까지 확립된 내용을 요약하고 특정 공백을 식별해야 합니다
+- 모델은 요구사항 결정을 알리기 위한 연구 수행을 제안할 수 있습니다
 
-### Research Limitations
+### 연구 제한사항
 
-If the model cannot access needed information:
+모델이 필요한 정보에 접근할 수 없는 경우:
 
-- The model SHOULD document what information is missing
-- The model SHOULD suggest alternative approaches based on available information
-- The model MAY ask the user to provide additional context or documentation
-- The model SHOULD continue with available information rather than blocking progress
+- 모델은 누락된 정보가 무엇인지 문서화해야 합니다
+- 모델은 사용 가능한 정보를 바탕으로 대안적 접근법을 제안해야 합니다
+- 모델은 사용자에게 추가 컨텍스트나 문서 제공을 요청할 수 있습니다
+- 모델은 진행을 차단하기보다는 사용 가능한 정보로 계속해야 합니다
 
-### Design Complexity
+### 설계 복잡성
 
-If the design becomes too complex or unwieldy:
+설계가 너무 복잡하거나 다루기 어려워지면:
 
-- The model SHOULD suggest breaking it down into smaller, more manageable components
-- The model SHOULD focus on core functionality first
-- The model MAY suggest a phased approach to implementation
-- The model SHOULD return to requirements clarification to prioritize features if needed
+- 모델은 더 작고 관리 가능한 구성 요소로 분해할 것을 제안해야 합니다
+- 모델은 먼저 핵심 기능에 집중해야 합니다
+- 모델은 구현에 대한 단계적 접근법을 제안할 수 있습니다
+- 필요한 경우 기능의 우선순위를 정하기 위해 요구사항 명확화로 돌아가야 합니다
 
 </workflow-definition>
 
-## Workflow Diagram
+## 워크플로우 다이어그램
 
-Here is a Mermaid flow diagram that describes how the workflow should behave. Take in mind that the entry points account for users doing the following actions:
+다음은 워크플로우가 어떻게 작동해야 하는지를 설명하는 Mermaid 플로우 다이어그램입니다. 진입점이 사용자가 다음 작업을 수행하는 것을 고려한다는 점을 염두에 두세요:
 
-- Creating a new spec (for a new feature that we don't have a spec for already)
-- Updating an existing spec
-- Executing tasks from a created spec
+- 새로운 스펙 생성 (아직 스펙이 없는 새로운 기능을 위해)
+- 기존 스펙 업데이트
+- 생성된 스펙에서 작업 실행
 
 ```mermaid
 stateDiagram-v2
