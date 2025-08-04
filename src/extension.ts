@@ -24,7 +24,7 @@ let permissionManager: PermissionManager;
 let agentManager: AgentManager;
 export let outputChannel: vscode.OutputChannel;
 
-// 导出 getter 函数供其他模块使用
+// 다른 모듈에서 사용할 수 있도록 getter 함수 내보내기
 export function getPermissionManager(): PermissionManager {
     return permissionManager;
 }
@@ -53,7 +53,7 @@ export async function activate(context: vscode.ExtensionContext) {
     // Initialize Claude Code SDK provider with output channel
     claudeCodeProvider = new ClaudeCodeProvider(context, outputChannel);
 
-    // 创建并初始化 PermissionManager
+    // PermissionManager 생성 및 초기화
     permissionManager = new PermissionManager(context, outputChannel);
 
     // 初始化权限系统（包含重试逻辑）
@@ -458,7 +458,7 @@ function registerCommands(context: vscode.ExtensionContext, specExplorer: SpecEx
 
         // Permission debug commands
         vscode.commands.registerCommand('kfc.permission.check', async () => {
-            // 使用新的 PermissionManager 检查真实的权限状态
+            // 새로운 PermissionManager를 사용하여 실제 권한 상태 확인
             const hasPermission = await permissionManager.checkPermission();
             const configPath = require('os').homedir() + '/.claude.json';
 

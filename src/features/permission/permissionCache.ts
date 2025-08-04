@@ -18,42 +18,42 @@ export class PermissionCache extends vscode.EventEmitter<boolean> implements IPe
     }
 
     /**
-     * 获取权限状态（使用缓存）
+     * 권한 상태 가져오기 (캐시 사용)
      */
     async get(): Promise<boolean> {
-        // 如果有缓存直接返回
+        // 캐시가 있으면 직접 반환
         if (this.cache !== undefined) {
             return this.cache;
         }
 
-        // 否则调用 refreshAndGet
+        // 그렇지 않으면 refreshAndGet 호출
         return this.refreshAndGet();
     }
 
     /**
-     * 刷新缓存（不返回值）
+     * 캐시 새로고침 (값 반환 안함)
      */
     async refresh(): Promise<void> {
         await this.refreshAndGet();
     }
 
     /**
-     * 刷新缓存并返回最新值
+     * 캐시 새로고침 후 최신 값 반환
      */
     async refreshAndGet(): Promise<boolean> {
-        // 保存旧值
+        // 이전 값 저장
         const oldValue = this.cache;
 
-        // 从 ConfigReader 读取最新状态
+        // ConfigReader에서 최신 상태 읽기
         this.cache = await this.configReader.getBypassPermissionStatus();
 
-        // 只在权限状态变化时打印日志
+        // 권한 상태가 변경된 경우에만 로그 출력
         if (oldValue !== this.cache) {
             this.outputChannel.appendLine(
                 `[PermissionCache] Permission changed: ${oldValue} -> ${this.cache}`
             );
 
-            // 如果权限从 false 变为 true，触发事件
+            // 권한이 false에서 true로 변경된 경우, 이벤트 발생
             if (oldValue === false && this.cache === true) {
                 this.outputChannel.appendLine(
                     '[PermissionCache] Permission granted! Firing event.'
@@ -61,7 +61,7 @@ export class PermissionCache extends vscode.EventEmitter<boolean> implements IPe
                 this.fire(true);
             }
 
-            // 如果权限从 true 变为 false，也触发事件
+            // 권한이 true에서 false로 변경된 경우에도 이벤트 발생
             if (oldValue === true && this.cache === false) {
                 this.outputChannel.appendLine(
                     '[PermissionCache] Permission revoked! Firing event.'
