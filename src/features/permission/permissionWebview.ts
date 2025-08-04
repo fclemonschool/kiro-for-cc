@@ -110,12 +110,24 @@ export class PermissionWebview {
                 async message => {
                     // Enhanced input validation for security with detailed checks
                     if (!message || typeof message !== 'object') {
-                        this.outputChannel.appendLine('[PermissionWebview] Invalid message format: not an object');
+                        this.outputChannel.appendLine('[PermissionWebview] Security: Invalid message format - not an object');
                         return;
                     }
                     
                     if (typeof message.command !== 'string' || message.command.length === 0) {
-                        this.outputChannel.appendLine('[PermissionWebview] Invalid message format: missing or invalid command');
+                        this.outputChannel.appendLine('[PermissionWebview] Security: Invalid message format - missing or invalid command');
+                        return;
+                    }
+
+                    // Command length validation
+                    if (message.command.length > 50) {
+                        this.outputChannel.appendLine(`[PermissionWebview] Security: Command too long (${message.command.length} chars)`);
+                        return;
+                    }
+
+                    // Command character validation - only allow alphanumeric and safe characters
+                    if (!/^[a-zA-Z0-9_-]+$/.test(message.command)) {
+                        this.outputChannel.appendLine(`[PermissionWebview] Security: Invalid characters in command`);
                         return;
                     }
 
@@ -126,9 +138,12 @@ export class PermissionWebview {
                         return;
                     }
 
+                    this.outputChannel.appendLine(`[PermissionWebview] Processing valid command: ${message.command}`);
+
                     switch (message.command) {
                         case 'accept':
                             if (PermissionWebview.callbacks) {
+                                this.outputChannel.appendLine('[PermissionWebview] Executing accept callback');
                                 const success = await PermissionWebview.callbacks.onAccept();
                                 if (!success) {
                                     // Validate and sanitize status message before sending
@@ -140,13 +155,19 @@ export class PermissionWebview {
                                     }
                                     
                                     // Send validated status update
-                                    panel.webview.postMessage({
-                                        command: 'updateStatus',
-                                        status: 'failed',
-                                        message: statusMessage.substring(0, 200)
-                                    });
+                                    try {
+                                        panel.webview.postMessage({
+                                            command: 'updateStatus',
+                                            status: 'failed',
+                                            message: statusMessage.substring(0, 200)
+                                        });
+                                    } catch (error: any) {
+                                        this.outputChannel.appendLine(`[PermissionWebview] Error sending status update: ${error?.message || 'Unknown error'}`);
+                                    }
                                 }
                                 // 주의: webview는 Manager에서 제어하므로 여기서 닫지 않음
+                            } else {
+                                this.outputChannel.appendLine('[PermissionWebview] Warning: No accept callback available');
                             }
                             return;
                         case 'cancel':

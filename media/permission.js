@@ -1,5 +1,12 @@
 const vscode = acquireVsCodeApi();
 
+// Security constants
+const MAX_MESSAGE_LENGTH = 200;
+const SAFE_CHAR_PATTERN = /^[a-zA-Z0-9\s\.\,\!\?\-\(\)ㄱ-ㅎㅏ-ㅣ가-힣]*$/;
+const VALID_COMMANDS = ['updateStatus'];
+const VALID_STATUSES = ['verifying', 'failed', 'success'];
+const VALID_ACTIONS = ['accept', 'cancel', 'openIssue'];
+
 // Enhanced message validation with comprehensive security checks
 function validateMessage(message) {
     // Basic structure validation
@@ -13,8 +20,7 @@ function validateMessage(message) {
     }
     
     // Command whitelist validation
-    const validCommands = ['updateStatus'];
-    if (!validCommands.includes(message.command)) {
+    if (!VALID_COMMANDS.includes(message.command)) {
         return { valid: false, reason: 'Command not allowed' };
     }
     
@@ -25,8 +31,7 @@ function validateMessage(message) {
             return { valid: false, reason: 'Invalid status format' };
         }
         
-        const validStatuses = ['verifying', 'failed', 'success'];
-        if (!validStatuses.includes(message.status)) {
+        if (!VALID_STATUSES.includes(message.status)) {
             return { valid: false, reason: 'Invalid status value' };
         }
         
@@ -37,13 +42,12 @@ function validateMessage(message) {
             }
             
             // Length validation
-            if (message.message.length > 200) {
+            if (message.message.length > MAX_MESSAGE_LENGTH) {
                 return { valid: false, reason: 'Message too long' };
             }
             
             // Character validation - only allow safe characters
-            const safeCharPattern = /^[a-zA-Z0-9\s\.\,\!\?\-\(\)ㄱ-ㅎㅏ-ㅣ가-힣]*$/;
-            if (!safeCharPattern.test(message.message)) {
+            if (!SAFE_CHAR_PATTERN.test(message.message)) {
                 return { valid: false, reason: 'Message contains invalid characters' };
             }
         }
@@ -52,32 +56,79 @@ function validateMessage(message) {
     return { valid: true };
 }
 
+// Secure action validation
+function validateAction(action) {
+    return typeof action === 'string' && VALID_ACTIONS.includes(action);
+}
+
+// Secure message posting with validation
+function postSecureMessage(command) {
+    if (!validateAction(command)) {
+        console.error('Security violation: Invalid action attempted:', command);
+        return;
+    }
+    
+    vscode.postMessage({ command });
+}
+
 function handleAccept() {
-    vscode.postMessage({
-        command: 'accept'
-    });
+    postSecureMessage('accept');
 }
 
 function handleCancel() {
-    vscode.postMessage({
-        command: 'cancel'
-    });
+    postSecureMessage('cancel');
 }
 
 function openIssue(event) {
-    event.preventDefault();
-    vscode.postMessage({
-        command: 'openIssue'
-    });
+    if (event) {
+        event.preventDefault();
+    }
+    postSecureMessage('openIssue');
 }
 
-// Keyboard shortcuts
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-        handleAccept();
-    } else if (e.key === 'Escape') {
-        handleCancel();
+// Secure event delegation
+function handleClick(event) {
+    event.preventDefault();
+    
+    const target = event.target;
+    const action = target.getAttribute('data-action');
+    
+    if (!validateAction(action)) {
+        console.warn('Invalid action attempted:', action);
+        return;
     }
+    
+    switch (action) {
+        case 'accept':
+            handleAccept();
+            break;
+        case 'cancel':
+            handleCancel();
+            break;
+        case 'openIssue':
+            openIssue(event);
+            break;
+        default:
+            console.warn('Unhandled action:', action);
+    }
+}
+
+// DOM Ready and Event Setup
+document.addEventListener('DOMContentLoaded', function() {
+    // Set up secure event delegation
+    document.addEventListener('click', handleClick);
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        // Only handle specific keys to prevent unexpected behavior
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            handleAccept();
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            handleCancel();
+        }
+    });
 });
 
 // Handle status updates from extension with enhanced validation

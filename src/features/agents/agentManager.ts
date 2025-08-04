@@ -145,13 +145,40 @@ export class AgentManager {
     }
 
     /**
-     * Recursively read agents from directory and subdirectories
+     * Recursively read agents from directory and subdirectories (보안 강화)
      */
     private async readAgentsRecursively(dirPath: string, type: 'project' | 'user', agents: AgentInfo[], excludeKfc: boolean = false): Promise<void> {
         try {
+            // 경로 보안 검증
+            const normalizedPath = path.normalize(dirPath);
+            if (normalizedPath.includes('..') || normalizedPath.includes('\0')) {
+                this.outputChannel.appendLine(`[AgentManager] Security: Invalid directory path detected: ${dirPath}`);
+                return;
+            }
+
+            // 최대 깊이 제한 (디렉토리 탐색 보안)
+            const maxDepth = 10;
+            const depth = normalizedPath.split(path.sep).length;
+            if (depth > maxDepth) {
+                this.outputChannel.appendLine(`[AgentManager] Security: Directory depth exceeded: ${dirPath}`);
+                return;
+            }
+
             const entries = await vscode.workspace.fs.readDirectory(vscode.Uri.file(dirPath));
             
+            // 처리할 파일 수 제한
+            if (entries.length > 1000) {
+                this.outputChannel.appendLine(`[AgentManager] Security: Too many entries in directory: ${dirPath}`);
+                return;
+            }
+            
             for (const [fileName, fileType] of entries) {
+                // 파일명 보안 검증
+                if (fileName.includes('\0') || fileName.includes('..')) {
+                    this.outputChannel.appendLine(`[AgentManager] Security: Invalid filename detected: ${fileName}`);
+                    continue;
+                }
+
                 const fullPath = path.join(dirPath, fileName);
                 
                 // Skip kfc directory if excludeKfc is true
@@ -175,23 +202,56 @@ export class AgentManager {
                     await this.readAgentsRecursively(fullPath, type, agents, excludeKfc);
                 }
             }
-        } catch (error) {
-            this.outputChannel.appendLine(`[AgentManager] Error reading directory ${dirPath}: ${error}`);
+        } catch (error: any) {
+            this.outputChannel.appendLine(`[AgentManager] Error reading directory ${dirPath}: ${error?.message || 'Unknown error'}`);
         }
     }
 
     /**
-     * Parse agent file and extract metadata
+     * Parse agent file and extract metadata (보안 강화)
      */
     private async parseAgentFile(filePath: string, type: 'project' | 'user'): Promise<AgentInfo | null> {
         try {
             this.outputChannel.appendLine(`[AgentManager] Parsing agent file: ${filePath}`);
+            
+            // 파일 경로 보안 검증
+            const normalizedPath = path.normalize(filePath);
+            if (normalizedPath.includes('..') || normalizedPath.includes('\0')) {
+                this.outputChannel.appendLine(`[AgentManager] Security: Invalid file path detected: ${filePath}`);
+                return null;
+            }
+
+            // 파일 크기 제한 (5MB)
+            try {
+                const stats = await fs.promises.stat(filePath);
+                if (stats.size > 5 * 1024 * 1024) {
+                    this.outputChannel.appendLine(`[AgentManager] Security: File too large: ${filePath} (${stats.size} bytes)`);
+                    return null;
+                }
+            } catch (statError: any) {
+                this.outputChannel.appendLine(`[AgentManager] Error checking file stats: ${statError?.message || 'Unknown error'}`);
+                return null;
+            }
+
             const content = await fs.promises.readFile(filePath, 'utf8');
+            
+            // 내용 길이 재검증
+            if (content.length > 5 * 1024 * 1024) {
+                this.outputChannel.appendLine(`[AgentManager] Security: Content too large: ${filePath}`);
+                return null;
+            }
             
             // Extract YAML frontmatter
             const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
             if (!frontmatterMatch) {
                 this.outputChannel.appendLine(`[AgentManager] No frontmatter found in: ${filePath}`);
+                return null;
+            }
+
+            // YAML 파싱 길이 제한
+            const frontmatterContent = frontmatterMatch[1];
+            if (frontmatterContent.length > 10000) {
+                this.outputChannel.appendLine(`[AgentManager] Security: Frontmatter too large in: ${filePath}`);
                 return null;
             }
 

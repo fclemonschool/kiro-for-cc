@@ -25,14 +25,58 @@ export class ClaudeCodeProvider {
     }
 
     /**
-     * Create a temporary file with content
+     * Create a temporary file with content (보안 강화)
      */
     private async createTempFile(content: string, prefix: string = 'prompt'): Promise<string> {
+        // 입력값 검증
+        if (typeof content !== 'string') {
+            throw new Error('Content must be a string');
+        }
+        
+        if (typeof prefix !== 'string' || prefix.length === 0) {
+            throw new Error('Prefix must be a non-empty string');
+        }
+        
+        // 안전한 파일명 생성 (특수문자 제거)
+        const safePrefix = prefix.replace(/[^a-zA-Z0-9_-]/g, '');
+        if (safePrefix.length === 0) {
+            throw new Error('Invalid prefix: contains only unsafe characters');
+        }
+        
+        // 길이 제한 (10MB)
+        if (content.length > 10 * 1024 * 1024) {
+            throw new Error('Content too large');
+        }
+        
         const tempDir = this.context.globalStorageUri.fsPath;
+        
+        // 디렉토리 경로 검증
+        const normalizedTempDir = path.normalize(tempDir);
+        if (normalizedTempDir.includes('..') || normalizedTempDir.includes('\0')) {
+            throw new Error('Invalid temp directory path');
+        }
+        
         await vscode.workspace.fs.createDirectory(this.context.globalStorageUri);
 
-        const tempFile = path.join(tempDir, `${prefix}-${Date.now()}.md`);
-        await fs.promises.writeFile(tempFile, content);
+        // 안전한 고유 파일명 생성
+        const timestamp = Date.now();
+        const randomSuffix = Math.random().toString(36).substring(2, 8);
+        const tempFile = path.join(tempDir, `${safePrefix}-${timestamp}-${randomSuffix}.md`);
+        
+        // 최종 경로 검증
+        const normalizedPath = path.normalize(tempFile);
+        if (!normalizedPath.startsWith(normalizedTempDir)) {
+            throw new Error('Generated path is outside temp directory');
+        }
+        
+        try {
+            await fs.promises.writeFile(tempFile, content, { 
+                encoding: 'utf8',
+                mode: 0o600 // 소유자만 읽기/쓰기 가능
+            });
+        } catch (error: any) {
+            throw new Error(`Failed to write temp file: ${error?.message || 'Unknown error'}`);
+        }
 
         return this.convertPathIfWSL(tempFile);
     }
