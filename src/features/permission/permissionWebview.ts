@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 
-// 定义回调接口
+// 콜백 인터페이스 정의
 interface PermissionWebviewCallbacks {
     onAccept: () => Promise<boolean>;
     onCancel: () => void;
@@ -77,9 +77,13 @@ export class PermissionWebview {
                 const htmlPath = vscode.Uri.joinPath(mediaPath, 'permission.html').fsPath;
                 let htmlContent = fs.readFileSync(htmlPath, 'utf8');
                 
-                // Replace placeholders with actual values
-                // Since we're not using image anymore, we can remove IMAGE_PATH placeholder
-                // The HTML is already updated to use text instead of image
+                // Convert CSS and JS file paths to webview URIs
+                const cssUri = panel.webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'permission.css'));
+                const jsUri = panel.webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'permission.js'));
+                
+                // Replace placeholder tokens in HTML with webview URIs
+                htmlContent = htmlContent.replace('{{CSS_URI}}', cssUri.toString());
+                htmlContent = htmlContent.replace('{{JS_URI}}', jsUri.toString());
                 
                 // Set the webview's initial html content
                 panel.webview.html = htmlContent;
@@ -104,19 +108,45 @@ export class PermissionWebview {
             // Handle messages from the webview
             PermissionWebview.messageDisposable = panel.webview.onDidReceiveMessage(
                 async message => {
+                    // Enhanced input validation for security with detailed checks
+                    if (!message || typeof message !== 'object') {
+                        this.outputChannel.appendLine('[PermissionWebview] Invalid message format: not an object');
+                        return;
+                    }
+                    
+                    if (typeof message.command !== 'string' || message.command.length === 0) {
+                        this.outputChannel.appendLine('[PermissionWebview] Invalid message format: missing or invalid command');
+                        return;
+                    }
+
+                    // Validate command against whitelist with detailed logging
+                    const validCommands = ['accept', 'cancel', 'openIssue'];
+                    if (!validCommands.includes(message.command)) {
+                        this.outputChannel.appendLine(`[PermissionWebview] Security violation: invalid command '${message.command}' received`);
+                        return;
+                    }
+
                     switch (message.command) {
                         case 'accept':
                             if (PermissionWebview.callbacks) {
                                 const success = await PermissionWebview.callbacks.onAccept();
                                 if (!success) {
-                                    // 更新 UI 状态显示失败
+                                    // Validate and sanitize status message before sending
+                                    const statusMessage = '권한을 설정할 수 없습니다. 다시 시도해주세요.';
+                                    
+                                    // Additional validation for message length and content
+                                    if (statusMessage.length > 200) {
+                                        this.outputChannel.appendLine('[PermissionWebview] Warning: Status message too long, truncating');
+                                    }
+                                    
+                                    // Send validated status update
                                     panel.webview.postMessage({
                                         command: 'updateStatus',
                                         status: 'failed',
-                                        message: '无法设置权限，请重试'
+                                        message: statusMessage.substring(0, 200)
                                     });
                                 }
-                                // 注意：不在这里关闭 webview，由 Manager 控制
+                                // 주의: webview는 Manager에서 제어하므로 여기서 닫지 않음
                             }
                             return;
                         case 'cancel':
@@ -124,7 +154,7 @@ export class PermissionWebview {
                             if (PermissionWebview.callbacks) {
                                 PermissionWebview.callbacks.onCancel();
                             }
-                            // 注意：不在这里关闭 webview，由 Manager 控制
+                            // 주의: webview는 Manager에서 제어하므로 여기서 닫지 않음
                             return;
                         case 'openIssue':
                             await vscode.env.openExternal(vscode.Uri.parse('https://github.com/notdp/kiro-for-cc/issues/3'));
@@ -142,7 +172,7 @@ export class PermissionWebview {
                     if (PermissionWebview.callbacks) {
                         PermissionWebview.callbacks.onDispose();
                     }
-                    // 注意：清理工作由 Manager 控制
+                    // 주의: 정리 작업은 Manager에서 제어
                 },
                 null,
                 context.subscriptions
@@ -150,8 +180,8 @@ export class PermissionWebview {
     }
 
     /**
-     * Forcefully close the current webview panel
-     * This is called when permission is granted through the terminal
+     * 현재 webview 패널을 강제로 닫기
+     * 터미널을 통해 권한이 부여될 때 호출됨
      */
     public static close(): void {
         if (this.outputChannel) {
@@ -183,5 +213,5 @@ export class PermissionWebview {
         }
     }
 
-    // Removed since we're reading from external file
+    // 외부 파일에서 읽어오므로 제거됨
 }
