@@ -12,23 +12,23 @@ export class ConfigReader {
     }
 
     /**
-     * 读取 bypassPermissionsModeAccepted 字段的值
+     * bypassPermissionsModeAccepted 필드 값 읽기
      */
     async getBypassPermissionStatus(): Promise<boolean> {
         try {
-            // 检查文件是否存在
+            // 파일 존재 여부 확인
             if (!fs.existsSync(this.configPath)) {
                 this.outputChannel.appendLine(`[ConfigReader] Config file not found: ${this.configPath}`);
                 return false;
             }
 
-            // 读取文件内容
+            // 파일 내용 읽기
             const content = await fs.promises.readFile(this.configPath, 'utf8');
 
-            // 解析 JSON
+            // JSON 파싱
             const config = JSON.parse(content);
 
-            // 返回权限字段值，默认为 false
+            // 권한 필드 값 반환, 기본값은 false
             const hasPermission = config.bypassPermissionsModeAccepted === true;
 
             return hasPermission;
@@ -39,13 +39,13 @@ export class ConfigReader {
     }
 
     /**
-     * 设置 bypassPermissionsModeAccepted 字段的值
+     * bypassPermissionsModeAccepted 필드 값 설정
      */
     async setBypassPermission(value: boolean): Promise<void> {
         try {
             let config: any = {};
 
-            // 如果文件存在，先读取现有配置
+            // 파일이 존재하면 기존 설정 먼저 읽기
             if (fs.existsSync(this.configPath)) {
                 const content = await fs.promises.readFile(this.configPath, 'utf8');
                 let parseSuccess = false;
@@ -54,7 +54,7 @@ export class ConfigReader {
                     config = JSON.parse(content);
                     parseSuccess = true;
                 } catch (e) {
-                    // 如果解析失败，重试两次
+                    // 파싱 실패 시 두 번 재시도
                     this.outputChannel.appendLine(`[ConfigReader] Failed to parse existing config, retrying...`);
                     for (let i = 0; i < 2; i++) {
                         try {
@@ -67,23 +67,23 @@ export class ConfigReader {
                     }
                 }
 
-                // 如果仍然失败，则写入空对象
+                // 여전히 실패하면 빈 객체로 작성
                 if (!parseSuccess) {
                     this.outputChannel.appendLine(`[ConfigReader] All parse attempts failed, using empty config object`);
                     config = {};
                 }
             }
 
-            // 设置权限字段
+            // 권한 필드 설정
             config.bypassPermissionsModeAccepted = value;
 
-            // 确保目录存在
+            // 디렉토리 존재 확인
             const dir = path.dirname(this.configPath);
             if (!fs.existsSync(dir)) {
                 await fs.promises.mkdir(dir, { recursive: true });
             }
 
-            // 写回文件（保持 2 空格缩进格式）
+            // 파일에 다시 쓰기 (2칸 들여쓰기 형식 유지)
             await fs.promises.writeFile(
                 this.configPath,
                 JSON.stringify(config, null, 2),
@@ -102,17 +102,17 @@ export class ConfigReader {
     }
 
     /**
-     * 监听配置文件变化
+     * 설정 파일 변화 모니터링
      */
     watchConfigFile(callback: () => void): void {
-        // 保存回调
+        // 콜백 저장
         this.watchCallback = callback;
 
-        // 使用 fs.watchFile 监听文件变化
-        // 测试表明这是最可靠的方法
+        // fs.watchFile을 사용하여 파일 변화 모니터링
+        // 테스트 결과 이것이 가장 신뢰할 수 있는 방법임
         fs.watchFile(this.configPath, { interval: 2000 }, (curr, prev) => {
             if (curr.mtime.getTime() !== prev.mtime.getTime()) {
-                // 文件变化时调用回调，日志在权限变化时才打印
+                // 파일 변화 시 콜백 호출, 로그는 권한 변화 시에만 출력
                 callback();
             }
         });
@@ -123,10 +123,10 @@ export class ConfigReader {
     }
 
     /**
-     * 清理资源
+     * 리소스 정리
      */
     dispose(): void {
-        // 停止监听文件
+        // 파일 모니터링 중지
         if (this.watchCallback) {
             fs.unwatchFile(this.configPath);
             this.outputChannel.appendLine('[ConfigReader] Stopped watching config file');

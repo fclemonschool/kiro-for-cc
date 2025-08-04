@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src 'self' data: vscode-resource:; font-src 'self' vscode-resource:;">
     <title>Claude Code Permission</title>
     <style>
         @keyframes blink {
@@ -19,9 +20,9 @@
             }
         }
 
-        /* VS Code 主题变量 */
+        /* VS Code 테마 변수 */
         :root {
-            /* 使用 VS Code 提供的 CSS 变量 */
+            /* VS Code에서 제공하는 CSS 변수 사용 */
             --vscode-editor-background: var(--vscode-editor-background);
             --vscode-editor-foreground: var(--vscode-editor-foreground);
             --vscode-button-background: var(--vscode-button-background);
@@ -38,13 +39,13 @@
             --vscode-warningForeground: var(--vscode-warningForeground);
             --vscode-successForeground: var(--vscode-successForeground);
 
-            /* 自定义主题颜色 */
+            /* 사용자 정의 테마 색상 */
             --terminal-green: #00ff00;
             --terminal-yellow: #ffff00;
             --terminal-red: #ff0000;
         }
 
-        /* 暗色主题样式 */
+        /* 다크 테마 스타일 */
         body {
             margin: 0;
             padding: 20px;
@@ -58,23 +59,23 @@
         }
 
         .vscode-dark body {
-            /* 暗色主题下保持终端风格 */
+            /* 다크 테마에서 터미널 스타일 유지 */
             --terminal-green: #00ff00;
             --terminal-yellow: #ffff00;
             --terminal-red: #ff6b6b;
-            /* 柔和的红色，不那么刺眼 */
+            /* 부드러운 빨간색, 눈에 덜 부담스러움 */
         }
 
         .vscode-light body {
-            /* 亮色主题下调整颜色 - 使用深色确保可读性 */
+            /* 라이트 테마에서 색상 조정 - 가독성을 위해 어두운 색상 사용 */
             --terminal-green: #1565c0;
-            /* Blue 800 - 深蓝色替代绿色 */
+            /* Blue 800 - 녹색 대신 진한 파란색 */
             --terminal-yellow: #3e2723;
-            /* Brown 900 - 极深棕色 */
+            /* Brown 900 - 매우 어두운 갈색 */
             --terminal-red: #8d4e41;
-            /* 偏褐色的红 - 不那么刺眼 */
+            /* 갈색이 섞인 빨간색 - 눈에 덜 부담스러움 */
 
-            /* 使用 WARNING 的淡黄色背景，更加柔和 */
+            /* WARNING의 연한 노란색 배경 사용, 더 부드러움 */
             background: #fff3cd;
         }
 
@@ -87,10 +88,10 @@
             position: relative;
         }
 
-        /* 浅色主题下的容器背景 */
+        /* 라이트 테마에서의 컨테이너 배경 */
         .vscode-light .container {
             background: #fffef9;
-            /* 更浅的奶油色，与页面背景协调 */
+            /* 더 연한 크림색, 페이지 배경과 조화 */
             box-shadow: 0 0 30px rgba(0, 0, 0, 0.08);
         }
 
@@ -104,10 +105,10 @@
             align-items: center;
         }
 
-        /* 浅色主题下终端头部使用深色 */
+        /* 라이트 테마에서 터미널 헤더는 어두운 색상 사용 */
         .vscode-light .terminal-header {
             color: #424242;
-            /* 深灰色 */
+            /* 진한 회색 */
         }
 
         .terminal-title {
@@ -116,10 +117,10 @@
             font-weight: bold;
         }
 
-        /* 浅色主题下标题使用深色 */
+        /* 라이트 테마에서 제목은 어두운 색상 사용 */
         .vscode-light .terminal-title {
             color: #424242;
-            /* 深灰色 */
+            /* 진한 회색 */
         }
 
         .terminal-title::before {
@@ -128,10 +129,10 @@
             margin-right: 5px;
         }
 
-        /* 浅色主题下美元符号使用蓝色 */
+        /* 라이트 테마에서 달러 기호는 파란색 사용 */
         .vscode-light .terminal-title::before {
             color: #1565c0;
-            /* 深蓝色 */
+            /* 진한 파란색 */
         }
 
         .action-box {
@@ -142,7 +143,7 @@
             position: relative;
         }
 
-        /* 浅色主题下 action-box 透明背景 */
+        /* 라이트 테마에서 action-box 투명 배경 */
         .vscode-light .action-box {
             background: transparent;
             border: none;
@@ -161,10 +162,10 @@
             color: var(--terminal-yellow);
         }
 
-        /* 浅色主题下 action-box 标题使用深色 */
+        /* 라이트 테마에서 action-box 제목은 어두운 색상 사용 */
         .vscode-light .action-box h3 {
             color: #424242;
-            /* 深灰色 */
+            /* 진한 회색 */
         }
 
         .action-box p {
@@ -173,10 +174,10 @@
             color: var(--terminal-green);
         }
 
-        /* 浅色主题下 action-box 文字使用深色 */
+        /* 라이트 테마에서 action-box 텍스트는 어두운 색상 사용 */
         .vscode-light .action-box p {
             color: #424242;
-            /* 深灰色，易于阅读 */
+            /* 진한 회색, 읽기 쉬움 */
         }
 
         .arrow-text {
@@ -184,25 +185,25 @@
             margin: 15px 0;
             font-size: 14px;
             color: var(--terminal-green);
-            /* 改用绿色，对比度更好 */
+            /* 대비도 향상을 위해 녹색 사용 */
         }
 
-        /* 浅色主题下 arrow-text 使用深色 */
+        /* 라이트 테마에서 arrow-text는 어두운 색상 사용 */
         .vscode-light .arrow-text {
             color: #616161;
-            /* 中深灰色 */
+            /* 중간 진한 회색 */
         }
 
-        /* 浅色主题下 arrow-text 光标也使用相同颜色 */
+        /* 라이트 테마에서 arrow-text 커서도 같은 색상 사용 */
         .vscode-light .arrow-text::after {
             color: #616161;
-            /* 与文字相同的中深灰色 */
+            /* 텍스트와 같은 중간 진한 회색 */
         }
 
         .arrow-text::after {
             content: '_';
             color: var(--terminal-green);
-            /* 光标也改为绿色 */
+            /* 커서도 녹색으로 변경 */
             animation: blink 1s infinite;
         }
 
@@ -230,13 +231,13 @@
             background: var(--vscode-input-background);
             border: 3px solid var(--terminal-red);
             box-shadow: 0 0 20px rgba(255, 0, 0, 0.2);
-            /* 减弱阴影 */
+            /* 그림자 약화 */
         }
 
-        /* 浅色主题下使用偏红的褐色边框 */
+        /* 라이트 테마에서 빨간 갈색 테두리 사용 */
         .vscode-light .image-container {
             border: 3px solid #a1665e;
-            /* 偏红的褐色 */
+            /* 빨간 갈색 */
             box-shadow: 0 0 20px rgba(161, 102, 94, 0.3);
         }
 
@@ -253,7 +254,7 @@
             letter-spacing: 2px;
         }
 
-        /* 浅色主题下确保 ATTENTION 标签可见 */
+        /* 라이트 테마에서 ATTENTION 라벨이 보이도록 */
         .vscode-light .image-container::before {
             background: white;
             border: 1px solid var(--terminal-red);
@@ -262,7 +263,7 @@
         .terminal-content {
             font-family: var(--vscode-editor-font-family, 'SF Mono', Monaco, Consolas, 'Courier New', monospace);
             font-size: 12px;
-            /* 调小终端内容字体 */
+            /* 터미널 내용 글꼴 크기 조정 */
             line-height: 1.5;
             padding: 15px;
             background: var(--vscode-terminal-background, var(--vscode-editor-background));
@@ -277,13 +278,13 @@
             text-align: center;
             letter-spacing: 1px;
             font-size: 13px;
-            /* 调小标题字体 */
+            /* 제목 글꼴 크기 조정 */
         }
 
-        /* 浅色主题下加强警告文字背景 */
+        /* 라이트 테마에서 경고 텍스트 배경 강화 */
         .vscode-light .warning-banner {
             color: #856404;
-            /* 深棕色文字 */
+            /* 진한 갈색 텍스트 */
             background: #fff3cd;
             padding: 5px;
             border: 1px solid #ffeeba;
@@ -297,7 +298,7 @@
             margin: 8px 0;
             line-height: 1.5;
             font-size: 12px;
-            /* 调小警告文字 */
+            /* 경고 텍스트 크기 조정 */
         }
 
         .warning-text .link {
@@ -309,7 +310,7 @@
             margin-top: 12px;
             font-family: var(--vscode-editor-font-family, monospace);
             font-size: 12px;
-            /* 调小选项字体 */
+            /* 옵션 글꼴 크기 조정 */
         }
 
         .permission-option {
@@ -323,7 +324,7 @@
             font-weight: bold;
         }
 
-        /* 亮色主题适配 */
+        /* 라이트 테마 적응 */
         .vscode-light .terminal-content {
             background: #f5f5f5;
             color: #333;
@@ -335,7 +336,7 @@
             color: white;
         }
 
-        /* 浅色主题下确保所有黄色文字可读 */
+        /* 라이트 테마에서 모든 노란색 텍스트가 읽기 쉽도록 */
         .vscode-light .action-box h3::before,
         .vscode-light .option::before,
         .vscode-light .option::after,
@@ -450,10 +451,10 @@
             transition: all 0.1s;
         }
 
-        /* 浅色主题下 issue 链接颜色 */
+        /* 라이트 테마에서 issue 링크 색상 */
         .vscode-light .issue-link {
             color: #666666;
-            /* 中灰色 */
+            /* 중간 회색 */
         }
 
         .issue-link:hover {
@@ -461,16 +462,16 @@
             text-decoration: underline;
         }
 
-        /* 终端风格保持 - 已在 :root 中通过 CSS 变量定义 */
+        /* 터미널 스타일 유지 - 이미 :root에서 CSS 변수로 정의됨 */
 
-        /* 高对比度主题支持 */
+        /* 고대비 테마 지원 */
         .vscode-high-contrast {
             --terminal-green: var(--vscode-terminal-ansiGreen);
             --terminal-yellow: var(--vscode-terminal-ansiYellow);
             --terminal-red: var(--vscode-terminal-ansiRed);
         }
 
-        /* 非交互模式提示样式 */
+        /* 비대화형 모드 안내 스타일 */
         .note-section {
             margin-top: 20px;
             padding: 20px;
@@ -478,7 +479,7 @@
             border: 1px solid var(--vscode-editorInfo-border, var(--vscode-input-border));
             border-radius: 4px;
             font-size: 15px;
-            /* 增大字体 */
+            /* 글꼴 크기 증가 */
         }
 
         .note-title {
@@ -486,7 +487,7 @@
             font-weight: bold;
             margin: 0 0 10px 0;
             font-size: 16px;
-            /* 增大标题字体 */
+            /* 제목 글꼴 크기 증가 */
         }
 
         .note-text {
@@ -494,7 +495,7 @@
             line-height: 1.6;
             margin: 0;
             font-size: 15px;
-            /* 增大正文字体 */
+            /* 본문 글꼴 크기 증가 */
         }
 
         .note-text code {
@@ -505,7 +506,7 @@
             font-size: 0.9em;
         }
 
-        /* 浅色主题下的代码块样式 */
+        /* 라이트 테마에서의 코드 블록 스타일 */
         .vscode-light .note-text code {
             background: rgba(0, 0, 0, 0.06);
         }
@@ -579,6 +580,12 @@
     <script>
         const vscode = acquireVsCodeApi();
 
+        // Input validation for commands
+        function isValidCommand(command) {
+            const validCommands = ['accept', 'cancel', 'openIssue'];
+            return validCommands.includes(command);
+        }
+
         function handleAccept() {
             vscode.postMessage({
                 command: 'accept'
@@ -607,26 +614,47 @@
             }
         });
 
-        // Handle status updates from extension
+        // Handle status updates from extension with validation
         window.addEventListener('message', event => {
             const message = event.data;
+            
+            // Validate message structure
+            if (!message || typeof message !== 'object' || !message.command) {
+                return;
+            }
+            
             if (message.command === 'updateStatus') {
                 const statusInfo = document.querySelector('.status-info');
-                if (statusInfo) {
+                if (statusInfo && message.status) {
+                    // Validate status values
+                    const validStatuses = ['verifying', 'failed', 'success'];
+                    if (!validStatuses.includes(message.status)) {
+                        return;
+                    }
+
+                    // Sanitize message content by limiting length and escaping
+                    let displayMessage = '';
+                    
                     switch (message.status) {
                         case 'verifying':
-                            statusInfo.textContent = 'STATUS: Verifying permissions...';
+                            displayMessage = 'STATUS: Verifying permissions...';
                             statusInfo.style.color = 'var(--terminal-yellow)';
                             break;
                         case 'failed':
-                            statusInfo.textContent = 'STATUS: ' + (message.message || 'Verification failed');
+                            // Limit message length and escape HTML
+                            const failMessage = message.message ? 
+                                String(message.message).substring(0, 200) : 
+                                'Verification failed';
+                            displayMessage = 'STATUS: ' + failMessage.replace(/</g, '&lt;').replace(/>/g, '&gt;');
                             statusInfo.style.color = 'var(--terminal-red)';
                             break;
                         case 'success':
-                            statusInfo.textContent = 'STATUS: Permission granted successfully!';
+                            displayMessage = 'STATUS: Permission granted successfully!';
                             statusInfo.style.color = 'var(--terminal-green)';
                             break;
                     }
+                    
+                    statusInfo.textContent = displayMessage;
                 }
             }
         });

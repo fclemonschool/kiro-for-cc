@@ -16,7 +16,7 @@ export class PermissionManager {
         private context: vscode.ExtensionContext,
         private outputChannel: vscode.OutputChannel
     ) {
-        // 初始化 ConfigReader 和 PermissionCache
+        // ConfigReader와 PermissionCache 초기화
         this.configReader = new ConfigReader(outputChannel);
         this.cache = new PermissionCache(this.configReader, outputChannel);
 
@@ -31,7 +31,7 @@ export class PermissionManager {
                     '[PermissionManager] Permission granted detected, closing UI elements'
                 );
 
-                // 关闭所有 UI 元素
+                // 모든 UI 요소 닫기
                 this.outputChannel.appendLine('[PermissionManager] Permission granted, closing UI elements');
                 this.closeUIElements();
 
@@ -67,7 +67,7 @@ export class PermissionManager {
         // 总是启动文件监听，这样可以检测权限变化
         this.startMonitoring();
 
-        // 调用 cache.refreshAndGet() 检查权限
+        // cache.refreshAndGet() 호출하여 권한 확인
         let hasPermission = await this.cache.refreshAndGet();
 
         if (hasPermission) {
@@ -81,7 +81,7 @@ export class PermissionManager {
         // 第一次直接显示权限设置
         hasPermission = await this.showPermissionSetup();
 
-        // 如果用户在 webview 中取消了，进入重试循环
+        // 사용자가 webview에서 취소한 경우, 재시도 루프로 진입
         while (!hasPermission) {
             // 显示警告并提供重试选项
             const retry = await vscode.window.showWarningMessage(
@@ -97,7 +97,7 @@ export class PermissionManager {
                     hasPermission = true;
                 }
             } else if (retry === 'Uninstall') {
-                // 用户点击了 Uninstall
+                // 사용자가 Uninstall을 클릭함
                 this.outputChannel.appendLine('[PermissionManager] User chose to uninstall');
 
                 // 先显示确认对话框
@@ -133,11 +133,11 @@ export class PermissionManager {
     }
 
     /**
-     * 授予权限（WebView 调用）
+     * 권한 부여 (WebView 호출)
      */
     async grantPermission(): Promise<boolean> {
         try {
-            // 调用 ConfigReader 设置权限
+            // ConfigReader 호출하여 권한 설정
             await this.configReader.setBypassPermission(true);
 
             // 刷新缓存
@@ -166,10 +166,10 @@ export class PermissionManager {
                 this.outputChannel.appendLine('[PermissionManager] Starting permission setup flow...');
                 this.outputChannel.appendLine('[PermissionManager] showPermissionSetup called');
 
-                // 调用 ClaudeCodeProvider.createPermissionTerminal() 创建终端
+                // ClaudeCodeProvider.createPermissionTerminal() 호출하여 터미널 생성
                 this.currentTerminal = ClaudeCodeProvider.createPermissionTerminal();
 
-                // 创建 WebView 使用回调模式
+                // 콜백 모드로 WebView 생성
                 PermissionWebview.createOrShow(
                     this.context,
                     {
@@ -177,7 +177,7 @@ export class PermissionManager {
                             this.outputChannel.appendLine('[PermissionManager] User accepted, granting permission');
                             const success = await this.grantPermission();
                             if (success) {
-                                // 关闭 UI 元素
+                                // UI 요소 닫기
                                 this.closeUIElements();
                                 resolve(true);
                             }
@@ -185,13 +185,13 @@ export class PermissionManager {
                         },
                         onCancel: () => {
                             this.outputChannel.appendLine('[PermissionManager] User cancelled');
-                            // 关闭 UI 元素
+                            // UI 요소 닫기
                             this.closeUIElements();
                             resolve(false);
                         },
                         onDispose: () => {
                             this.outputChannel.appendLine('[PermissionManager] WebView disposed');
-                            // 关闭其他 UI 元素
+                            // 기타 UI 요소 닫기
                             if (this.currentTerminal) {
                                 this.currentTerminal.dispose();
                                 this.currentTerminal = undefined;
@@ -202,7 +202,7 @@ export class PermissionManager {
                     this.outputChannel
                 );
 
-                // 保存 WebView 引用
+                // WebView 참조 저장
                 this.permissionWebview = PermissionWebview.currentPanel;
                 this.outputChannel.appendLine(
                     `[PermissionManager] WebView reference saved: ${this.permissionWebview ? 'Yes' : 'No'}`
@@ -217,12 +217,12 @@ export class PermissionManager {
     }
 
     /**
-     * 关闭所有 UI 元素
+     * 모든 UI 요소 닫기
      */
     private closeUIElements(): void {
         this.outputChannel.appendLine('[PermissionManager] Closing UI elements');
 
-        // 关闭 WebView
+        // WebView 닫기
         if (this.permissionWebview) {
             PermissionWebview.close();
             this.permissionWebview = undefined;
@@ -241,7 +241,7 @@ export class PermissionManager {
     startMonitoring(): void {
         this.outputChannel.appendLine('[PermissionManager] Starting file monitoring...');
 
-        // 调用 configReader.watchConfigFile()
+        // configReader.watchConfigFile() 호출
         this.configReader.watchConfigFile(async () => {
             // 文件变化时刷新缓存
             await this.cache.refresh();
@@ -249,13 +249,13 @@ export class PermissionManager {
     }
 
     /**
-     * 重置权限状态（设置为 false）
+     * 권한 상태 재설정 (false로 설정)
      */
     async resetPermission(): Promise<boolean> {
         try {
             this.outputChannel.appendLine('[PermissionManager] Resetting permission to false...');
 
-            // 调用 ConfigReader 设置权限为 false
+            // ConfigReader 호출하여 권한을 false로 설정
             await this.configReader.setBypassPermission(false);
 
             // 刷新缓存
@@ -277,13 +277,13 @@ export class PermissionManager {
      * 清理资源
      */
     dispose(): void {
-        // 清理所有 disposables
+        // 모든 disposables 정리
         this.disposables.forEach(d => d.dispose());
 
-        // 清理 ConfigReader
+        // ConfigReader 정리
         this.configReader.dispose();
 
-        // 清理 WebView 和终端
+        // WebView와 터미널 정리
         if (this.permissionWebview) {
             this.permissionWebview.dispose();
         }
