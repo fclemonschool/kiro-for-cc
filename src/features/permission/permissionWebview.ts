@@ -77,9 +77,13 @@ export class PermissionWebview {
                 const htmlPath = vscode.Uri.joinPath(mediaPath, 'permission.html').fsPath;
                 let htmlContent = fs.readFileSync(htmlPath, 'utf8');
                 
-                // Replace placeholders with actual values
-                // Since we're not using image anymore, we can remove IMAGE_PATH placeholder
-                // The HTML is already updated to use text instead of image
+                // Convert CSS and JS file paths to webview URIs
+                const cssUri = panel.webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'permission.css'));
+                const jsUri = panel.webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'permission.js'));
+                
+                // Replace file references in HTML with webview URIs
+                htmlContent = htmlContent.replace('permission.css', cssUri.toString());
+                htmlContent = htmlContent.replace('permission.js', jsUri.toString());
                 
                 // Set the webview's initial html content
                 panel.webview.html = htmlContent;
