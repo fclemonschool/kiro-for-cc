@@ -81,9 +81,9 @@ export class PermissionWebview {
                 const cssUri = panel.webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'permission.css'));
                 const jsUri = panel.webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'permission.js'));
                 
-                // Replace file references in HTML with webview URIs
-                htmlContent = htmlContent.replace('permission.css', cssUri.toString());
-                htmlContent = htmlContent.replace('permission.js', jsUri.toString());
+                // Replace placeholder tokens in HTML with webview URIs
+                htmlContent = htmlContent.replace('{{CSS_URI}}', cssUri.toString());
+                htmlContent = htmlContent.replace('{{JS_URI}}', jsUri.toString());
                 
                 // Set the webview's initial html content
                 panel.webview.html = htmlContent;
@@ -108,16 +108,21 @@ export class PermissionWebview {
             // Handle messages from the webview
             PermissionWebview.messageDisposable = panel.webview.onDidReceiveMessage(
                 async message => {
-                    // Input validation for security
-                    if (!message || typeof message !== 'object' || typeof message.command !== 'string') {
-                        this.outputChannel.appendLine('[PermissionWebview] Invalid message format received');
+                    // Enhanced input validation for security with detailed checks
+                    if (!message || typeof message !== 'object') {
+                        this.outputChannel.appendLine('[PermissionWebview] Invalid message format: not an object');
+                        return;
+                    }
+                    
+                    if (typeof message.command !== 'string' || message.command.length === 0) {
+                        this.outputChannel.appendLine('[PermissionWebview] Invalid message format: missing or invalid command');
                         return;
                     }
 
-                    // Validate command against whitelist
+                    // Validate command against whitelist with detailed logging
                     const validCommands = ['accept', 'cancel', 'openIssue'];
                     if (!validCommands.includes(message.command)) {
-                        this.outputChannel.appendLine(`[PermissionWebview] Invalid command received: ${message.command}`);
+                        this.outputChannel.appendLine(`[PermissionWebview] Security violation: invalid command '${message.command}' received`);
                         return;
                     }
 
@@ -126,11 +131,19 @@ export class PermissionWebview {
                             if (PermissionWebview.callbacks) {
                                 const success = await PermissionWebview.callbacks.onAccept();
                                 if (!success) {
-                                    // UI 상태 업데이트로 실패 표시
+                                    // Validate and sanitize status message before sending
+                                    const statusMessage = '권한을 설정할 수 없습니다. 다시 시도해주세요.';
+                                    
+                                    // Additional validation for message length and content
+                                    if (statusMessage.length > 200) {
+                                        this.outputChannel.appendLine('[PermissionWebview] Warning: Status message too long, truncating');
+                                    }
+                                    
+                                    // Send validated status update
                                     panel.webview.postMessage({
                                         command: 'updateStatus',
                                         status: 'failed',
-                                        message: '권한을 설정할 수 없습니다. 다시 시도해주세요.'
+                                        message: statusMessage.substring(0, 200)
                                     });
                                 }
                                 // 주의: webview는 Manager에서 제어하므로 여기서 닫지 않음
